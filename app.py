@@ -1,31 +1,14 @@
-import requests as http
+import json, os
 from flask import Flask, request, jsonify, render_template_string
 from hever_lite import search
 
 app = Flask(__name__)
 
-MCCCARD_URL = "https://www.mcc.co.il/bs2/datasets/mcccard.json"
-
-def fetch_stores_requests():
-    r = http.get(MCCCARD_URL,
-                 headers={"User-Agent": "Mozilla/5.0", "Referer": "https://www.mcc.co.il/"},
-                 timeout=15)
-    r.raise_for_status()
-    return r.json()
-
-# Pre-load at startup so first search is instant
-_stores = []
-try:
-    _stores = fetch_stores_requests()
-    print(f"Loaded {len(_stores)} stores.")
-except Exception as e:
-    print(f"Warning: failed to pre-load stores: {e}")
-
-def get_stores():
-    global _stores
-    if not _stores:
-        _stores = fetch_stores_requests()
-    return _stores
+# Load bundled JSON — no network request needed
+_json_path = os.path.join(os.path.dirname(__file__), "mcccard.json")
+with open(_json_path, encoding="utf-8") as f:
+    _stores = json.load(f)
+print(f"Loaded {len(_stores)} stores from local file.")
 
 HTML = """
 <!DOCTYPE html>
@@ -128,11 +111,7 @@ def index():
 
 @app.route("/debug")
 def debug():
-    try:
-        stores = get_stores()
-        return jsonify({"status": "ok", "store_count": len(stores), "sample": stores[0].get("company") if stores else None})
-    except Exception as e:
-        return jsonify({"status": "error", "error": str(e)}), 500
+    return jsonify({"status": "ok", "store_count": len(_stores), "sample": _stores[0].get("company") if _stores else None})
 
 @app.route("/check")
 def check():
@@ -140,12 +119,7 @@ def check():
     if not q:
         return jsonify({"found": False, "fuzzy": []})
 
-    try:
-        stores = get_stores()
-    except Exception as e:
-        return jsonify({"error": f"Failed to load stores: {e}"}), 500
-
-    exact, fuzzy = search(q, stores)
+    exact, fuzzy = search(q, _stores)
 
     if exact:
         s = exact[0]
