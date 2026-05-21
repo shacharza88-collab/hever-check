@@ -1,0 +1,36 @@
+name: Update store list
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"  # Every Monday at 3am
+  workflow_dispatch:       # Also allow manual trigger from GitHub UI
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download latest mcccard.json
+        run: |
+          python3 - <<'EOF'
+          import urllib.request, ssl, json
+          ctx = ssl.create_default_context()
+          req = urllib.request.Request(
+              "https://www.mcc.co.il/bs2/datasets/mcccard.json",
+              headers={"User-Agent": "Mozilla/5.0", "Referer": "https://www.mcc.co.il/"}
+          )
+          with urllib.request.urlopen(req, context=ctx, timeout=15) as r:
+              data = json.loads(r.read().decode("utf-8"))
+          with open("mcccard.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, ensure_ascii=False)
+          print(f"Updated: {len(data)} stores")
+          EOF
+
+      - name: Commit if changed
+        run: |
+          git config user.email "github-actions@github.com"
+          git config user.name "GitHub Actions"
+          git add mcccard.json
+          git diff --cached --quiet || git commit -m "Auto-update store list"
+          git push
