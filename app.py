@@ -86,7 +86,8 @@ HTML = """
           <div class="row"><span class="label">קטגוריה</span><span>${s.category}</span></div>
           ${s.branches ? `<div class="row"><span class="label">סניפים</span><span>${s.branches}</span></div>` : ''}
           ${s.website ? `<div class="row"><span class="label">אתר</span><span>${s.website}</span></div>` : ''}
-          ${s.online ? `<div class="row"><span class="label">אונליין</span><span>✓</span></div>` : ''}
+          <div class="row"><span class="label">אונליין</span><span>${s.online ? '✓ כן' : '✗ לא'}</span></div>
+          ${s.online && s.online_limitations ? `<div class="row"><span class="label">תנאי אונליין</span><span style="font-size:0.85rem">${s.online_limitations}</span></div>` : ''}
           ${terms ? `<div style="margin-top:8px"><div class="label" style="margin-bottom:4px">תנאים</div>${terms}</div>` : ''}
           <p class="note">חבר שלי בלבד · לבדיקת הנחות כרטיס אשראי השתמש ב-hever_check.py</p>`;
       } else if (d.fuzzy && d.fuzzy.length) {
@@ -131,6 +132,7 @@ def check():
                 "website": s.get("website", ""),
                 "branches": s.get("branch_qty", ""),
                 "online": s.get("is_online") == "Y",
+                "online_limitations": s.get("online_limitations", "").replace("<br/>", "\n").strip(),
                 "limitations": s.get("limitations", "").replace("<br/>", "\n"),
             }
         })
