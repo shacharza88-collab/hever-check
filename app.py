@@ -1,14 +1,30 @@
+import requests as http
 from flask import Flask, request, jsonify, render_template_string
-from hever_lite import fetch_stores, search
+from hever_lite import search
 
 app = Flask(__name__)
 
-_stores = None
+MCCCARD_URL = "https://www.mcc.co.il/bs2/datasets/mcccard.json"
+
+def fetch_stores_requests():
+    r = http.get(MCCCARD_URL,
+                 headers={"User-Agent": "Mozilla/5.0", "Referer": "https://www.mcc.co.il/"},
+                 timeout=15)
+    r.raise_for_status()
+    return r.json()
+
+# Pre-load at startup so first search is instant
+_stores = []
+try:
+    _stores = fetch_stores_requests()
+    print(f"Loaded {len(_stores)} stores.")
+except Exception as e:
+    print(f"Warning: failed to pre-load stores: {e}")
 
 def get_stores():
     global _stores
-    if _stores is None:
-        _stores = fetch_stores()
+    if not _stores:
+        _stores = fetch_stores_requests()
     return _stores
 
 HTML = """
