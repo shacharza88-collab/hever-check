@@ -126,13 +126,25 @@ HTML = """
 def index():
     return render_template_string(HTML)
 
+@app.route("/debug")
+def debug():
+    try:
+        stores = get_stores()
+        return jsonify({"status": "ok", "store_count": len(stores), "sample": stores[0].get("company") if stores else None})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
 @app.route("/check")
 def check():
     q = request.args.get("q", "").strip()
     if not q:
         return jsonify({"found": False, "fuzzy": []})
 
-    stores = get_stores()
+    try:
+        stores = get_stores()
+    except Exception as e:
+        return jsonify({"error": f"Failed to load stores: {e}"}), 500
+
     exact, fuzzy = search(q, stores)
 
     if exact:
