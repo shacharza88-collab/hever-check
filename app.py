@@ -1,4 +1,4 @@
-import json, os
+import json, os, datetime
 from flask import Flask, request, jsonify, render_template_string
 from hever_lite import search
 
@@ -8,7 +8,11 @@ app = Flask(__name__)
 _json_path = os.path.join(os.path.dirname(__file__), "mcccard.json")
 with open(_json_path, encoding="utf-8") as f:
     _stores = json.load(f)
-print(f"Loaded {len(_stores)} stores from local file.")
+
+_last_updated = datetime.datetime.fromtimestamp(
+    os.path.getmtime(_json_path)
+).strftime("%d/%m/%Y")
+print(f"Loaded {len(_stores)} stores, updated {_last_updated}.")
 
 HTML = """
 <!DOCTYPE html>
@@ -53,6 +57,7 @@ HTML = """
 <body>
   <h1>🟢 בדיקת חבר</h1>
   <p class="sub">חפש חנות לדעת אם מקבלת כרטיס חבר שלי</p>
+  <p class="sub" style="font-size:0.75rem; color:#aaa">עודכן לאחרונה: {{ last_updated }}</p>
   <div class="card">
     <div class="search-row">
       <input id="q" type="text" placeholder="שם חנות..." autofocus
@@ -108,7 +113,7 @@ HTML = """
 
 @app.route("/")
 def index():
-    return render_template_string(HTML)
+    return render_template_string(HTML, last_updated=_last_updated)
 
 @app.route("/debug")
 def debug():
