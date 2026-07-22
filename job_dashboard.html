@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Search Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            min-width: 150px;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            opacity: 0.9;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box, .filter-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .job-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .job-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .job-company {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .job-source-badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .source-company {
+            background: #10b981;
+            color: white;
+        }
+
+        .source-linkedin {
+            background: #0077b5;
+            color: white;
+        }
+
+        .source-indeed {
+            background: #2557a7;
+            color: white;
+        }
+
+        .source-remoteok {
+            background: #ff6b35;
+            color: white;
+        }
+
+        .job-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .job-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .job-detail {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .job-detail-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .job-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .keywords-section {
+            margin-top: 18px;
+        }
+
+        .keywords-label {
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .keywords-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .keyword-tag {
+            background: #f0f0ff;
+            color: #667eea;
+            border: 1px solid #c7d2fe;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .keyword-delete {
+            background: none;
+            border: none;
+            color: #a5b4fc;
+            cursor: pointer;
+            font-size: 1em;
+            padding: 0;
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        .keyword-delete:hover { color: #e53e3e; }
+
+        .btn-edit-keywords {
+            background: none;
+            border: 1px solid #c7d2fe;
+            color: #667eea;
+            border-radius: 12px;
+            padding: 2px 10px;
+            font-size: 0.8em;
+            cursor: pointer;
+            margin-left: 8px;
+            font-weight: 500;
+        }
+
+        .btn-edit-keywords:hover { background: #f0f0ff; }
+
+        .keyword-add-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .keyword-input {
+            width: auto;
+            padding: 3px 10px;
+            border: 1px solid #c7d2fe;
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .keyword-input:focus { outline: none; border-color: #667eea; }
+
+        .btn-add-keyword {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-add-keyword:hover { background: #764ba2; }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 15px;
+            color: #666;
+        }
+
+        .no-results h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .job-source {
+            font-size: 0.85em;
+            color: #999;
+            font-style: italic;
+        }
+
+        .job-date {
+            font-size: 0.85em;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            .jobs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .stats {
+                gap: 15px;
+            }
+
+            .stat-box {
+                min-width: 120px;
+                padding: 15px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Job Search Results</h1>
+            <p style="color: #666; margin-top: 10px;">Your personalized job opportunities from top Israeli tech companies</p>
+            <p style="color: #999; font-size: 0.9em; margin-top: 5px;">Last updated: July 21, 2026 at 09:31 PM</p>
+            <div class="keywords-section">
+                <div class="keywords-label">
+                    Searching for:
+                    <button class="btn-edit-keywords" id="editKeywordsBtn" onclick="toggleKeywordEdit()">Edit</button>
+                </div>
+                <div class="keywords-tags" id="keywordTags"></div>
+            </div>
+            <div class="stats" id="stats"></div>
+        </header>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Search jobs by title or keyword...">
+            </div>
+            <div class="filter-box">
+                <select id="sourceFilter">
+                    <option value="">All Sources</option>
+                    <option value="Company Website">Company Websites</option>
+                    <option value="LinkedIn">LinkedIn</option>
+                    <option value="Indeed">Indeed</option>
+                    <option value="RemoteOK">RemoteOK</option>
+                </select>
+            </div>
+            <div class="filter-box">
+                <select id="companyFilter">
+                    <option value="">All Companies</option>
+                </select>
+            </div>
+            <div class="filter-box">
+                <select id="locationFilter">
+                    <option value="">All Locations</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="jobs-grid" id="jobsGrid"></div>
+    </div>
+
+    <script>
+        // Keywords management
+        const embeddedKeywords = ["head of operations", "director of operations", "director of business operations", "head of projects", "project management", "operations manager", "vp operations", "vp of operations", "chief of staff", "COO", "business operations", "operations lead", "program manager", "programme manager"];
+        let activeKeywords = JSON.parse(localStorage.getItem('customKeywords') || 'null') || [...embeddedKeywords];
+        let editingKeywords = false;
+
+        function renderKeywords() {
+            const container = document.getElementById('keywordTags');
+            const tags = activeKeywords.map((kw, i) =>
+                `<span class="keyword-tag">${kw}${editingKeywords ? `<button class="keyword-delete" onclick="deleteKeyword(${i})" title="Remove">×</button>` : ''}</span>`
+            ).join('');
+            const addInput = editingKeywords ? `
+                <span class="keyword-add-wrap">
+                    <input type="text" id="newKeywordInput" class="keyword-input" placeholder="Add keyword..." onkeydown="if(event.key==='Enter')addKeyword()">
+                    <button class="btn-add-keyword" onclick="addKeyword()">Add</button>
+                </span>` : '';
+            container.innerHTML = tags + addInput;
+            if (editingKeywords) {
+                const inp = document.getElementById('newKeywordInput');
+                if (inp) inp.focus();
+            }
+        }
+
+        function toggleKeywordEdit() {
+            editingKeywords = !editingKeywords;
+            document.getElementById('editKeywordsBtn').textContent = editingKeywords ? 'Done' : 'Edit';
+            renderKeywords();
+        }
+
+        function deleteKeyword(index) {
+            activeKeywords.splice(index, 1);
+            localStorage.setItem('customKeywords', JSON.stringify(activeKeywords));
+            renderKeywords();
+        }
+
+        function addKeyword() {
+            const input = document.getElementById('newKeywordInput');
+            const val = input.value.trim();
+            if (!val) return;
+            if (!activeKeywords.map(k => k.toLowerCase()).includes(val.toLowerCase())) {
+                activeKeywords.push(val);
+                localStorage.setItem('customKeywords', JSON.stringify(activeKeywords));
+            }
+            input.value = '';
+            renderKeywords();
+        }
+
+        // Embedded job data
+        const jobsData = {"a84ba7b875d5eaaf52ee60214b501e68": {"title": "Operation Coordinator - Netanya Site", "company": "JFrog", "location": "Tel Aviv/ Netanya, Israel", "url": "https://join.jfrog.com/job/?job=7645941&gh_jid=7645941", "description": "", "posted_date": "Recent", "source": "Company Website (JFrog)", "job_id": "a84ba7b875d5eaaf52ee60214b501e68", "found_date": "2026-05-01T23:43:16.541746"}, "b681cd836bef77265c27500901f62581": {"title": "Program Manager - NPI", "company": "JFrog", "location": "Tel Aviv/ Netanya, Israel", "url": "https://join.jfrog.com/job/?job=7418297&gh_jid=7418297", "description": "", "posted_date": "Recent", "source": "Company Website (JFrog)", "job_id": "b681cd836bef77265c27500901f62581", "found_date": "2026-05-01T23:43:16.541759"}, "6e841a56bbe202b334bd993758b8e6a7": {"title": "Revenue Operations Manager - Base44", "company": "Wix", "location": "Tel Aviv, , Israel", "url": "https://careers.smartrecruiters.com/Wix2/4eae4b0c-5576-442e-9210-cc0853573701", "description": "", "posted_date": "Recent", "source": "Company Website (Wix)", "job_id": "6e841a56bbe202b334bd993758b8e6a7", "found_date": "2026-05-01T23:43:17.527511"}, "e8a4236357f661868e465fdc4ba99b3f": {"title": "AI Strategy and Operations Lead - Customer Organization", "company": "Monday.com", "location": "Tel-Aviv, Israel", "url": "https://monday.com/careers/DD.860", "description": "", "posted_date": "", "source": "career_page", "job_id": "e8a4236357f661868e465fdc4ba99b3f", "found_date": "2026-05-02T00:04:29.075818"}, "939ebe5fa3a6bf5ee56444a259b5b3de": {"title": "Business Operations Manager", "company": "Monday.com", "location": "Tel-Aviv, Israel", "url": "https://monday.com/careers/FA.A52", "description": "", "posted_date": "", "source": "career_page", "job_id": "939ebe5fa3a6bf5ee56444a259b5b3de", "found_date": "2026-05-02T00:04:29.075821"}, "4f00d528c89db10f28384f823344015e": {"title": "Risk Operations Manager", "company": "Rapyd", "location": "Tel Aviv, Israel", "url": "https://www.rapyd.net/company/careers-search//2D.76A", "description": "", "posted_date": "", "source": "career_page", "job_id": "4f00d528c89db10f28384f823344015e", "found_date": "2026-05-02T00:04:29.075824"}, "f3fa828a15fa19922e37a5df8e90a272": {"title": "People Operations Coordinator", "company": "DriveNets", "location": "Ra'anana, Israel", "url": "https://drivenets.com/job/?id=49.66C", "description": "", "posted_date": "", "source": "career_page", "job_id": "f3fa828a15fa19922e37a5df8e90a272", "found_date": "2026-05-02T00:04:29.075827"}, "77c805c7765233a28cb6d8611d1d5702": {"title": "Operations Manager - Creative Team- Super Sonic ", "company": "IronSource", "location": "Tel Aviv, Israel", "url": "https://unity.com/careers/positions/7745464?gh_jid=7745464", "description": "", "posted_date": "Recent", "source": "Company Website (IronSource)", "job_id": "77c805c7765233a28cb6d8611d1d5702", "found_date": "2026-05-01T23:47:35.498302"}, "865e771cb18075046d161c590f808f3f": {"title": "Head Of Operations", "company": "Tensorleap", "location": "Ramat Gan, Israel", "url": "https://tensorleap.ai/careers/head-of-operations", "description": "", "posted_date": "", "source": "career_page", "job_id": "865e771cb18075046d161c590f808f3f", "found_date": "2026-05-02T00:04:29.075833"}, "0923162c40df923ce5c3dbf1691ebd84": {"title": "Technical Coordinator Autonomous Vehicles Core Platforms", "company": "Mobileye", "location": "Ramat Gan, Israel", "url": "https://careers.mobileye.com/jobs/technical-coordinator-autonomous-vehicles-core-platforms/71b04062-87e3-43b5-948e-ef0f7a528830", "description": "", "posted_date": "", "source": "career_page", "job_id": "0923162c40df923ce5c3dbf1691ebd84", "found_date": "2026-05-02T00:04:29.075837"}, "5402edafca59ca2b343731ec89404f47": {"title": "Chief of StaffIsrael  ·  Full-time  ·  Senior", "company": "Driivz", "location": "Israel", "url": "https://driivz.com/careers/co/israel/3F.362/chief-of-staff/all", "description": "", "posted_date": "Recent", "source": "Company Website (Driivz)", "job_id": "5402edafca59ca2b343731ec89404f47", "found_date": "2026-05-01T23:51:17.794630"}, "9d09750a95558ad7b699dfe9be0108b4": {"title": "Hardware Technical Program Manager", "company": "Next Silicon", "location": "Israel", "url": "https://www.nextsilicon.com/careers//6C.766", "description": "", "posted_date": "", "source": "career_page", "job_id": "9d09750a95558ad7b699dfe9be0108b4", "found_date": "2026-05-02T00:04:29.075844"}, "90362fd4fd0b64b384ee71f2bb0f96f9": {"title": "Business operations & strategy Lead", "company": "Playbuzz", "location": "Tel Aviv, Israel", "url": "https://www.comeet.com/jobs/exco/F0.005/EA.961", "description": "", "posted_date": "", "source": "career_page", "job_id": "90362fd4fd0b64b384ee71f2bb0f96f9", "found_date": "2026-05-02T00:04:29.075846"}, "e2b37502e08c83e0143cf4ac54e14c1f": {"title": "PMO, Business Operations", "company": "Fiverr", "location": "Tel Aviv", "url": "https://www.fiverr.com/jobs/7F.665", "description": "", "posted_date": "", "source": "career_page", "job_id": "e2b37502e08c83e0143cf4ac54e14c1f", "found_date": "2026-05-02T00:04:29.075850"}, "c267249027a032133958cdae9488dc10": {"title": "Sr Technical Program Manager (Cortex XSOAR)", "company": "Palo Alto Networks", "location": "Office - Israel - Tel Aviv", "url": "https://paloaltonetworks.wd5.myworkdayjobs.com/panwexternalcareers/job/Office---Israel---Tel-Aviv/Sr-Technical-Program-Manager--Cortex-XSOAR-_JR-014240", "description": "", "posted_date": "Recent", "source": "Company Website (Palo Alto Networks)", "job_id": "c267249027a032133958cdae9488dc10", "found_date": "2026-05-01T23:57:57.379321"}, "cbdd4b08ce62d555abce4f0c857cb0e2": {"title": "Senior Product Operations Manager", "company": "Palo Alto Networks", "location": "Office - Israel - Tel Aviv", "url": "https://paloaltonetworks.wd5.myworkdayjobs.com/panwexternalcareers/job/Office---Israel---Tel-Aviv/Senior-Product-Operations-Manager_JR-015037", "description": "", "posted_date": "Recent", "source": "Company Website (Palo Alto Networks)", "job_id": "cbdd4b08ce62d555abce4f0c857cb0e2", "found_date": "2026-05-01T23:57:57.379370"}, "7588215c7f8be5032176e4199aa4d8dc": {"title": "Security Program Manager – Oracle Israel", "company": "Oracle Israel", "location": "PETACH TIKVA, Israel", "url": "https://eeho.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/jobsearch/", "description": "", "posted_date": "Recent", "source": "Company Website (Oracle Israel)", "job_id": "7588215c7f8be5032176e4199aa4d8dc", "found_date": "2026-05-01T23:58:11.917972"}, "912c3c911f13943ce2d96a235be7161f": {"title": "Operation Coordinator - Netanya Site", "company": "JFrog", "location": "Tel Aviv/ Netanya, Israel", "url": "https://join.jfrog.com/job/?job=7645941&gh_jid=7645941", "description": "", "posted_date": "Recent", "source": "Company Website (JFrog)", "job_id": "912c3c911f13943ce2d96a235be7161f", "found_date": "2026-05-02T21:28:35.864601"}, "f8121d432fd82ebf79fbf43a08bd0449": {"title": "Program Manager - NPI", "company": "JFrog", "location": "Tel Aviv/ Netanya, Israel", "url": "https://join.jfrog.com/job/?job=7418297&gh_jid=7418297", "description": "", "posted_date": "Recent", "source": "Company Website (JFrog)", "job_id": "f8121d432fd82ebf79fbf43a08bd0449", "found_date": "2026-05-02T21:28:35.864763"}, "4ab499efee9a89454f9a5096ab8b6ba7": {"title": "Revenue Operations Manager - Base44", "company": "Wix", "location": "Tel Aviv, , Israel", "url": "https://careers.smartrecruiters.com/Wix2/4eae4b0c-5576-442e-9210-cc0853573701", "description": "", "posted_date": "Recent", "source": "Company Website (Wix)", "job_id": "4ab499efee9a89454f9a5096ab8b6ba7", "found_date": "2026-05-02T21:28:38.000632"}, "9602bda43c227c36e4ba76ca762be652": {"title": "Chief of StaffIsrael  ·  Full-time  ·  Senior", "company": "Driivz", "location": "Israel", "url": "https://driivz.com/careers/co/israel/3F.362/chief-of-staff/all", "description": "", "posted_date": "Recent", "source": "Company Website (Driivz)", "job_id": "9602bda43c227c36e4ba76ca762be652", "found_date": "2026-05-02T21:36:55.341537"}, "2401014d1466062844f61272da1f3cee": {"title": "Sr Technical Program Manager (Cortex XSOAR)", "company": "Palo Alto Networks", "location": "Office - Israel - Tel Aviv", "url": "https://paloaltonetworks.wd5.myworkdayjobs.com/panwexternalcareers/job/Office---Israel---Tel-Aviv/Sr-Technical-Program-Manager--Cortex-XSOAR-_JR-014240", "description": "", "posted_date": "Recent", "source": "Company Website (Palo Alto Networks)", "job_id": "2401014d1466062844f61272da1f3cee", "found_date": "2026-05-02T21:44:45.370268"}, "05ff5a21b3321d92173079f64ad6a291": {"title": "Senior Product Operations Manager", "company": "Palo Alto Networks", "location": "Office - Israel - Tel Aviv", "url": "https://paloaltonetworks.wd5.myworkdayjobs.com/panwexternalcareers/job/Office---Israel---Tel-Aviv/Senior-Product-Operations-Manager_JR-015037", "description": "", "posted_date": "Recent", "source": "Company Website (Palo Alto Networks)", "job_id": "05ff5a21b3321d92173079f64ad6a291", "found_date": "2026-05-02T21:44:45.370527"}, "679c45c13f2b4eaf01f0582b2d28f909": {"title": "Security Program Manager – Oracle Israel", "company": "Oracle Israel", "location": "PETACH TIKVA, Israel", "url": "https://eeho.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/jobsearch/", "description": "", "posted_date": "Recent", "source": "Company Website (Oracle Israel)", "job_id": "679c45c13f2b4eaf01f0582b2d28f909", "found_date": "2026-05-02T21:45:04.719844"}, "daac409c74298c5c835d4583b6099bcc": {"title": "Business Operations Analyst", "company": "NICE", "location": "Israel - Raanana", "url": "https://boards.eu.greenhouse.io/nice/jobs/4854351101?gh_jid=4854351101", "description": "", "posted_date": "Recent", "source": "Company Website (NICE)", "job_id": "daac409c74298c5c835d4583b6099bcc", "found_date": "2026-05-04T03:49:34.474886"}, "0972df38d14b057c6446752d0021c91c": {"title": "Business Operations Analyst", "company": "Actimize", "location": "Israel - Raanana", "url": "https://boards.eu.greenhouse.io/nice/jobs/4854351101?gh_jid=4854351101", "description": "", "posted_date": "Recent", "source": "Company Website (Actimize)", "job_id": "0972df38d14b057c6446752d0021c91c", "found_date": "2026-05-04T03:51:50.544552"}, "162bda5b4f379bc86cc6749092f0a004": {"title": "Talent Acquisition Coordinator ", "company": "JFrog", "location": "Tel Aviv", "url": "https://join.jfrog.com/job/?job=7809712&gh_jid=7809712", "description": "", "posted_date": "Recent", "source": "Company Website (JFrog)", "job_id": "162bda5b4f379bc86cc6749092f0a004", "found_date": "2026-05-12T21:39:21.312410"}, "8038925a00bfe1f22fcd7e504749181b": {"title": "Revenue Operations Manager - Base44", "company": "Wix", "location": "Tel Aviv, , Israel", "url": "https://careers.smartrecruiters.com/Wix2/bfb89669-23c6-41ce-871a-b67463f57271", "description": "", "posted_date": "Recent", "source": "Company Website (Wix)", "job_id": "8038925a00bfe1f22fcd7e504749181b", "found_date": "2026-05-12T21:39:24.130828"}, "258daad86c49f39516b5174da658a137": {"title": "Senior Program Manager", "company": "NICE", "location": "Israel - Raanana", "url": "https://boards.eu.greenhouse.io/nice/jobs/4863073101?gh_jid=4863073101", "description": "", "posted_date": "Recent", "source": "Company Website (NICE)", "job_id": "258daad86c49f39516b5174da658a137", "found_date": "2026-05-12T21:40:29.885381"}, "4a5e23f0dee2484fba5464383233de45": {"title": "Senior Program Manager", "company": "Actimize", "location": "Israel - Raanana", "url": "https://boards.eu.greenhouse.io/nice/jobs/4863073101?gh_jid=4863073101", "description": "", "posted_date": "Recent", "source": "Company Website (Actimize)", "job_id": "4a5e23f0dee2484fba5464383233de45", "found_date": "2026-05-12T21:43:52.221684"}, "f38a618fc5719d9114a3c1c649189c9f": {"title": " Revenue Operations Manager-  Herzliya", "company": "AppsFlyer", "location": "Israel", "url": "https://careers.appsflyer.com/jobs/position/8539131002?gh_jid=8539131002", "description": "", "posted_date": "Recent", "source": "Company Website (AppsFlyer)", "job_id": "f38a618fc5719d9114a3c1c649189c9f", "found_date": "2026-05-12T21:51:03.456115"}, "c7bd220ad39f83b6e12bc953504f67cd": {"title": "Customer Service Knowledge Coordinator", "company": "Global-e", "location": "Israel, Petah Tikva", "url": "https://www.global-e.com/careers/75.A6A", "description": "", "posted_date": "", "source": "career_page", "job_id": "c7bd220ad39f83b6e12bc953504f67cd", "found_date": "2026-05-12T21:52:54.004566"}, "a42a1aab15b91aaaa504e45fb5db126e": {"title": "Program Manager", "company": "Innoviz", "location": "Israel", "url": "https://www.comeet.com/jobs/innoviz/52.004/64.567", "description": "", "posted_date": "", "source": "career_page", "job_id": "a42a1aab15b91aaaa504e45fb5db126e", "found_date": "2026-05-12T21:56:17.022583"}, "11ecb50904fb673ec9d0f346f06e3844": {"title": "Product Manager – eCom Platform (Business Operations & Core)", "company": "Wix", "location": "Tel Aviv, , Israel", "url": "https://careers.smartrecruiters.com/Wix2/ff21ffa0-8559-4fd8-abfe-d61c1944355e", "description": "", "posted_date": "Recent", "source": "Company Website (Wix)", "job_id": "11ecb50904fb673ec9d0f346f06e3844", "found_date": "2026-05-20T09:38:02.673883"}, "6f481ab129f61c258481c55240d4351a": {"title": "Partner Operations Manager", "company": "NICE", "location": "Israel - Raanana", "url": "https://boards.eu.greenhouse.io/nice/jobs/4826145101?gh_jid=4826145101", "description": "", "posted_date": "Recent", "source": "Company Website (NICE)", "job_id": "6f481ab129f61c258481c55240d4351a", "found_date": "2026-05-20T09:38:56.521801"}, "d5e501a3f25e0f56bb5c8c39fddfa71f": {"title": "Partner Operations Manager", "company": "Actimize", "location": "Israel - Raanana", "url": "https://boards.eu.greenhouse.io/nice/jobs/4826145101?gh_jid=4826145101", "description": "", "posted_date": "Recent", "source": "Company Website (Actimize)", "job_id": "d5e501a3f25e0f56bb5c8c39fddfa71f", "found_date": "2026-05-20T09:41:24.382742"}, "a2158f599526396d411a9957729a1c88": {"title": "Data Center Operations Program Manager", "company": "Taboola", "location": "Tel Aviv, Israel", "url": "https://www.taboola.com/careers/job/7313068?gh_jid=7313068", "description": "", "posted_date": "Recent", "source": "Company Website (Taboola)", "job_id": "a2158f599526396d411a9957729a1c88", "found_date": "2026-05-20T09:42:49.050186"}, "4720f6eafb4edd3d88df5be08997aec1": {"title": "People Operations Coordinator (Part-time 70%~)", "company": "DriveNets", "location": "Ra'anana, Israel", "url": "https://drivenets.com/job/?id=49.66C", "description": "", "posted_date": "", "source": "career_page", "job_id": "4720f6eafb4edd3d88df5be08997aec1", "found_date": "2026-05-25T10:33:24.192787"}, "07e3ff23c7d6761c98f85235c32c72fc": {"title": "Technical Operations Manager", "company": "Moon Active", "location": "Tel Aviv, Israel", "url": "https://www.moonactive.com/careers//49.F1E", "description": "", "posted_date": "", "source": "career_page", "job_id": "07e3ff23c7d6761c98f85235c32c72fc", "found_date": "2026-05-25T10:39:55.158356"}, "098aba754f1a4240667c302bfd755683": {"title": "Sr Technical Program Manager", "company": "Palo Alto Networks", "location": "Office - Israel - Tel Aviv", "url": "https://paloaltonetworks.wd5.myworkdayjobs.com/panwexternalcareers/job/Office---Israel---Tel-Aviv/Sr-Technical-Program-Manager_JR-017319", "description": "", "posted_date": "Recent", "source": "Company Website (Palo Alto Networks)", "job_id": "098aba754f1a4240667c302bfd755683", "found_date": "2026-05-25T10:46:50.000462"}, "897ed696d184f9bfe7d70a8c85231505": {"title": "Product Manager – eCom Platform (Business Operations & Core)", "company": "Wix", "location": "Tel Aviv, , Israel", "url": "https://careers.smartrecruiters.com/Wix2/8ecace06-6bce-471f-bacd-70334ca99606", "description": "", "posted_date": "Recent", "source": "Company Website (Wix)", "job_id": "897ed696d184f9bfe7d70a8c85231505", "found_date": "2026-05-28T06:54:36.149926"}, "7c14b987e4e5da2e26d079108caa1867": {"title": "Execution Program Manager", "company": "Mobileye", "location": "Tel-Aviv, Israel", "url": "https://careers.mobileye.com/jobs/execution-program-manager/8d09a950-7497-409c-a7d2-4a72458435de", "description": "", "posted_date": "", "source": "career_page", "job_id": "7c14b987e4e5da2e26d079108caa1867", "found_date": "2026-05-29T11:11:38.993525"}, "a64beac4333198ff82f763c1715aeae3": {"title": "Execution Program Manager", "company": "Mobileye", "location": "Jerusalem, Israel", "url": "https://careers.mobileye.com/jobs/execution-program-manager/b6db859a-bb49-4e66-ac3d-d111eeb03bd1", "description": "", "posted_date": "", "source": "career_page", "job_id": "a64beac4333198ff82f763c1715aeae3", "found_date": "2026-05-29T11:11:38.993564"}, "55953b6861870a4202137a8ea0b9076b": {"title": "Business Operations Manager", "company": "JFrog", "location": "Tel Aviv/ Netanya, Israel", "url": "https://join.jfrog.com/job/?job=7955674&gh_jid=7955674", "description": "", "posted_date": "Recent", "source": "Company Website (JFrog)", "job_id": "55953b6861870a4202137a8ea0b9076b", "found_date": "2026-06-06T21:34:05.553769"}, "15add93d170bd64495261829d8d67ce3": {"title": "Revenue Operations Manager - Base44", "company": "Wix", "location": "Tel Aviv, , Israel", "url": "https://careers.smartrecruiters.com/Wix2/96872c67-3497-4e82-bcf1-c27e872f9f04", "description": "", "posted_date": "Recent", "source": "Company Website (Wix)", "job_id": "15add93d170bd64495261829d8d67ce3", "found_date": "2026-06-17T16:59:51.719427"}, "ad7b71c5c8816cab2f83adbe31344f40": {"title": "Business Operations Manager, Payments- Temp", "company": "Fireblocks", "location": "Tel Aviv-Yafo, Tel Aviv District, Israel", "url": "https://www.fireblocks.com/careers/position/4687951006?gh_jid=4687951006", "description": "", "posted_date": "Recent", "source": "Company Website (Fireblocks)", "job_id": "ad7b71c5c8816cab2f83adbe31344f40", "found_date": "2026-06-18T20:08:10.164235"}, "0a6593cbbedffd48f719cb888a40ba04": {"title": "Senior Technical Program Manager", "company": "Mobileye", "location": "Jerusalem, Israel", "url": "https://careers.mobileye.com/jobs/senior-technical-program-manager/b62913b8-da97-4467-85ff-7d495ef44cf4", "description": "", "posted_date": "", "source": "career_page", "job_id": "0a6593cbbedffd48f719cb888a40ba04", "found_date": "2026-06-19T08:39:29.582699"}, "3b7608b519ad15198e4947ec614d7182": {"title": "Business Operations Department Admin", "company": "Mobileye", "location": "Jerusalem, Israel", "url": "https://careers.mobileye.com/jobs/business-operations-department-admin/57f998ab-3c9b-4a47-bca1-c016ab6168d6", "description": "", "posted_date": "", "source": "career_page", "job_id": "3b7608b519ad15198e4947ec614d7182", "found_date": "2026-06-19T08:39:29.599948"}, "2106929a1fe0b15892a218dd3db6f8ce": {"title": "Chief Of StaffIsrael  ·  Full-time  ·  Senior", "company": "Driivz", "location": "Israel", "url": "https://driivz.com/careers/co/israel/BC.B66/chief-of-staff/all", "description": "", "posted_date": "Recent", "source": "Company Website (Driivz)", "job_id": "2106929a1fe0b15892a218dd3db6f8ce", "found_date": "2026-06-19T08:41:08.758161"}, "4414f082e8a1c315c0775ab70e1f0f35": {"title": "Program Manager", "company": "Silverfort", "location": "Tel Aviv, Israel", "url": "https://www.comeet.com/jobs/silverfort/54.007/16.A6A", "description": "", "posted_date": "", "source": "career_page", "job_id": "4414f082e8a1c315c0775ab70e1f0f35", "found_date": "2026-06-19T08:45:06.048674"}, "05c0a44fc0acb359a027b003a7df33a6": {"title": "Staff Technical Program Manager", "company": "Armis", "location": "Tel Aviv-Yafo, Tel Aviv District, Israel", "url": "https://job-boards.greenhouse.io/armissecurity/jobs/6011024004", "description": "", "posted_date": "Recent", "source": "Company Website (Armis)", "job_id": "05c0a44fc0acb359a027b003a7df33a6", "found_date": "2026-06-19T08:47:35.143573"}, "a8ee80d58cac363076a8d9cf25c1a46a": {"title": "Technical Program Manager", "company": "INFINIDAT", "location": "Herzliya", "url": "https://infinidat.com/careers/84.C65", "description": "", "posted_date": "", "source": "career_page", "job_id": "a8ee80d58cac363076a8d9cf25c1a46a", "found_date": "2026-06-19T08:48:16.309458"}, "6e83236ecd7cd92fa10156b3e6b8969c": {"title": "Senior Engineering Program Manager Epm Rem Map Development", "company": "Mobileye", "location": "Jerusalem, Israel", "url": "https://careers.mobileye.com/jobs/senior-engineering-program-manager-epm-rem-map-development/c6857a0e-92a8-4aca-b656-d040427c3fe9", "description": "", "posted_date": "", "source": "career_page", "job_id": "6e83236ecd7cd92fa10156b3e6b8969c", "found_date": "2026-06-24T21:20:22.491730"}, "17f2832a9ea9d3e875bc59d34050730a": {"title": "Business Operations Department Administration", "company": "Mobileye", "location": "Jerusalem, Israel", "url": "https://careers.mobileye.com/jobs/business-operations-department-administration/57f998ab-3c9b-4a47-bca1-c016ab6168d6", "description": "", "posted_date": "", "source": "career_page", "job_id": "17f2832a9ea9d3e875bc59d34050730a", "found_date": "2026-06-24T21:20:22.492377"}, "2fd15fec05639f3a295c9919394e63ba": {"title": "Operations Coordinator - Voca CIC", "company": "AudioCodes", "location": "Naimi Park, Or Yehuda, Israel", "url": "https://www.audiocodes.com/careers/71.D6C", "description": "", "posted_date": "", "source": "career_page", "job_id": "2fd15fec05639f3a295c9919394e63ba", "found_date": "2026-06-24T21:31:34.322040"}, "2abd6e0cabe503725b1b8a0942b6afb4": {"title": "Product Operations Manager", "company": "Varonis", "location": "Israel", "url": "https://jobs.jobvite.com/varonis/job/oVznAfwb?nl=1", "description": "", "posted_date": "Recent", "source": "Company Website (Varonis)", "job_id": "2abd6e0cabe503725b1b8a0942b6afb4", "found_date": "2026-06-24T21:31:37.277571"}, "b40fe3125b8b9a4aecb30cdd3844976b": {"title": "Sr Technical Program Manager (Idira)", "company": "Palo Alto Networks", "location": "Office - Israel - CyberArk Petach Tikva", "url": "https://paloaltonetworks.wd5.myworkdayjobs.com/panwexternalcareers/job/Office---Israel---CyberArk-Petach-Tikva/Sr-Technical-Program-Manager--Idira-_JR-019026", "description": "", "posted_date": "Recent", "source": "Company Website (Palo Alto Networks)", "job_id": "b40fe3125b8b9a4aecb30cdd3844976b", "found_date": "2026-06-24T21:34:39.036417"}, "5767f7607add964d40c3afe759a1d738": {"title": "Principal Technical Program Manager", "company": "Palo Alto Networks", "location": "Office - Israel - Tel Aviv", "url": "https://paloaltonetworks.wd5.myworkdayjobs.com/panwexternalcareers/job/Office---Israel---Tel-Aviv/Principal-Technical-Program-Manager_JR-017964", "description": "", "posted_date": "Recent", "source": "Company Website (Palo Alto Networks)", "job_id": "5767f7607add964d40c3afe759a1d738", "found_date": "2026-06-24T21:34:40.786561"}, "969df4b461424d249707d4572bf005f2": {"title": "Business Operations Manager, Payments- Temp", "company": "Fireblocks", "location": "Tel Aviv-Yafo, Tel Aviv District, Israel", "url": "https://www.fireblocks.com/careers/4687951006?gh_jid=4687951006", "description": "", "posted_date": "Recent", "source": "Company Website (Fireblocks)", "job_id": "969df4b461424d249707d4572bf005f2", "found_date": "2026-07-04T14:46:34.946910"}, "15d706b7f3834ac00e5325adf241db02": {"title": "Senior Growth Operations Manager", "company": "Similarweb", "location": "Tel Aviv", "url": "https://job-boards.greenhouse.io/similarweb/jobs/7854902", "description": "", "posted_date": "Recent", "source": "Company Website (Similarweb)", "job_id": "15d706b7f3834ac00e5325adf241db02", "found_date": "2026-07-04T14:51:57.630694"}, "7eae5f64cbdce00c17789acd655bd304": {"title": "Senior Technical Program Manager", "company": "Tipalti", "location": "Tel Aviv District, Israel", "url": "https://tipalti.com/jobs/?gh_jid=6104990004", "description": "", "posted_date": "Recent", "source": "Company Website (Tipalti)", "job_id": "7eae5f64cbdce00c17789acd655bd304", "found_date": "2026-07-04T14:52:04.190591"}, "7ec63f17fe9b0e30954e311ba07db895": {"title": "Creative Operations ManagerPermanent | Israel", "company": "Hibob", "location": "Israel", "url": "https://hibob-fa0ad69d0cb34a.careers.hibob.com/jobs/430bbce0-d435-4c02-a0c8-e3d895826ee8", "description": "", "posted_date": "Recent", "source": "Company Website (Hibob)", "job_id": "7ec63f17fe9b0e30954e311ba07db895", "found_date": "2026-07-06T17:25:14.001141"}, "bc2ef668cde9d0fe21c294390ef11e06": {"title": "Lead Program Manager", "company": "NICE", "location": "Israel - Raanana", "url": "https://boards.eu.greenhouse.io/nice/jobs/4920943101?gh_jid=4920943101", "description": "", "posted_date": "Recent", "source": "Company Website (NICE)", "job_id": "bc2ef668cde9d0fe21c294390ef11e06", "found_date": "2026-07-09T07:58:47.861695"}, "98dc6e082dcd5b829b20c81a4d19b8fc": {"title": "Lead Program Manager", "company": "Actimize", "location": "Israel - Raanana", "url": "https://boards.eu.greenhouse.io/nice/jobs/4920943101?gh_jid=4920943101", "description": "", "posted_date": "Recent", "source": "Company Website (Actimize)", "job_id": "98dc6e082dcd5b829b20c81a4d19b8fc", "found_date": "2026-07-09T08:00:33.569183"}, "b8bbffe45996268a1aaf54ef6d858117": {"title": "Technical Program Manager", "company": "Cato Networks", "location": "Tel Aviv District, Israel", "url": "https://www.catonetworks.com/careers/careers-post/4920920101?gh_jid=4920920101", "description": "", "posted_date": "Recent", "source": "Company Website (Cato Networks)", "job_id": "b8bbffe45996268a1aaf54ef6d858117", "found_date": "2026-07-14T03:23:09.606554"}, "d9b82e6ddb5b2ffc09c94c0b9891247a": {"title": "Technical Program Manager", "company": "Quantum Machines", "location": "Israel, Tel Aviv Office", "url": "https://www.comeet.com/jobs/quantummachines/D6.000/B2.E62", "description": "", "posted_date": "", "source": "career_page", "job_id": "d9b82e6ddb5b2ffc09c94c0b9891247a", "found_date": "2026-07-14T03:34:23.778358"}, "8825c6cff0788ea34695cedfd3b23504": {"title": "Program Manager - CTO Office (Maternity Leave Replacement)", "company": "Fiverr", "location": "Tel Aviv", "url": "https://www.fiverr.com/jobs/F4.71E", "description": "", "posted_date": "", "source": "career_page", "job_id": "8825c6cff0788ea34695cedfd3b23504", "found_date": "2026-07-14T23:09:21.149291"}, "d467291cd14d7bb55d0c4857574d859f": {"title": "R&D Operations Program Manager", "company": "NICE", "location": "Israel - Raanana", "url": "https://boards.eu.greenhouse.io/nice/jobs/4933210101?gh_jid=4933210101", "description": "", "posted_date": "Recent", "source": "Company Website (NICE)", "job_id": "d467291cd14d7bb55d0c4857574d859f", "found_date": "2026-07-21T21:15:59.289465"}, "3e15869e9ff15150547945c26b6bc897": {"title": "R&D Operations Program Manager", "company": "Actimize", "location": "Israel - Raanana", "url": "https://boards.eu.greenhouse.io/nice/jobs/4933210101?gh_jid=4933210101", "description": "", "posted_date": "Recent", "source": "Company Website (Actimize)", "job_id": "3e15869e9ff15150547945c26b6bc897", "found_date": "2026-07-21T21:17:51.376543"}, "4175453485ee67418ddcfaecfb1077e6": {"title": "Head of Operations", "company": "Okoora", "location": "Ramat Gan, Tel Aviv District, Israel", "url": "https://il.linkedin.com/jobs/view/head-of-operations-at-okoora-4368086007", "description": "", "posted_date": "Recent", "source": "LinkedIn", "job_id": "4175453485ee67418ddcfaecfb1077e6", "found_date": "2026-02-14T23:22:58.239611"}, "a38cad2e2ed083e314ab61225d72dc35": {"title": "Head of Operations", "company": "Ozio Limited", "location": "Raanana, Center District, Israel", "url": "https://il.linkedin.com/jobs/view/head-of-operations-at-ozio-limited-4355269021", "description": "", "posted_date": "Recent", "source": "LinkedIn", "job_id": "a38cad2e2ed083e314ab61225d72dc35", "found_date": "2026-02-14T23:22:58.239761"}};
+        let allJobs = Object.values(jobsData);
+        
+        function getSourceType(source) {
+            if (source.includes('LinkedIn')) return 'LinkedIn';
+            if (source.includes('Indeed')) return 'Indeed';
+            if (source.includes('RemoteOK')) return 'RemoteOK';
+            if (source.includes('Company Website')) return 'Company Website';
+            return source;
+        }
+
+        function displayStats() {
+            const companies = new Set(allJobs.map(job => job.company)).size;
+            const locations = new Set(allJobs.map(job => job.location)).size;
+            const sources = new Set(allJobs.map(job => getSourceType(job.source))).size;
+            
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-box">
+                    <div class="stat-number">${allJobs.length}</div>
+                    <div class="stat-label">Total Jobs</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">${companies}</div>
+                    <div class="stat-label">Companies</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">${sources}</div>
+                    <div class="stat-label">Sources</div>
+                </div>
+            `;
+        }
+
+        function populateFilters() {
+            const companies = [...new Set(allJobs.map(job => job.company))].sort();
+            const locations = [...new Set(allJobs.map(job => job.location))].sort();
+            
+            const companyFilter = document.getElementById('companyFilter');
+            companies.forEach(company => {
+                const option = document.createElement('option');
+                option.value = company;
+                option.textContent = company;
+                companyFilter.appendChild(option);
+            });
+
+            const locationFilter = document.getElementById('locationFilter');
+            locations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location;
+                locationFilter.appendChild(option);
+            });
+        }
+
+        function displayJobs(jobs) {
+            const grid = document.getElementById('jobsGrid');
+            
+            if (jobs.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-results">
+                        <h2>No jobs found</h2>
+                        <p>Try adjusting your filters or search terms</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = jobs.map(job => {
+                const date = new Date(job.found_date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                const sourceType = getSourceType(job.source);
+                let sourceBadgeClass = 'source-company';
+                if (sourceType === 'LinkedIn') sourceBadgeClass = 'source-linkedin';
+                else if (sourceType === 'Indeed') sourceBadgeClass = 'source-indeed';
+                else if (sourceType === 'RemoteOK') sourceBadgeClass = 'source-remoteok';
+
+                return `
+                    <div class="job-card">
+                        <div class="job-header">
+                            <div class="job-company">${job.company}</div>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <span class="job-source-badge ${sourceBadgeClass}">${sourceType}</span>
+                        </div>
+                        <div class="job-title">${job.title}</div>
+                        <div class="job-details">
+                            <div class="job-detail">
+                                <svg class="job-detail-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                                ${job.location}
+                            </div>
+                            <div class="job-date">Found: ${date}</div>
+                        </div>
+                        <div class="job-actions">
+                            <a href="${job.url}" target="_blank" class="btn btn-primary">View Job →</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterJobs() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const sourceFilter = document.getElementById('sourceFilter').value;
+            const companyFilter = document.getElementById('companyFilter').value;
+            const locationFilter = document.getElementById('locationFilter').value;
+
+            const filtered = allJobs.filter(job => {
+                const matchesSearch = job.title.toLowerCase().includes(searchTerm) || 
+                                     job.company.toLowerCase().includes(searchTerm);
+                const matchesSource = !sourceFilter || getSourceType(job.source) === sourceFilter;
+                const matchesCompany = !companyFilter || job.company === companyFilter;
+                const matchesLocation = !locationFilter || job.location === locationFilter;
+                
+                return matchesSearch && matchesSource && matchesCompany && matchesLocation;
+            });
+
+            displayJobs(filtered);
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', filterJobs);
+        document.getElementById('sourceFilter').addEventListener('change', filterJobs);
+        document.getElementById('companyFilter').addEventListener('change', filterJobs);
+        document.getElementById('locationFilter').addEventListener('change', filterJobs);
+
+        // Initialize on page load
+        renderKeywords();
+        displayStats();
+        populateFilters();
+        displayJobs(allJobs);
+    </script>
+</body>
+</html>
