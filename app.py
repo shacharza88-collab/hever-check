@@ -1,5 +1,5 @@
-import json, os, datetime, hmac
-from flask import Flask, request, jsonify, render_template_string, Response, send_from_directory
+import json, os, datetime
+from flask import Flask, request, jsonify, render_template_string, send_from_directory
 from hever_lite import search
 
 app = Flask(__name__)
@@ -116,25 +116,8 @@ def index():
     return render_template_string(HTML, last_updated=_last_updated)
 
 # --- Job dashboard -----------------------------------------------------------
-# Password-protected, and deliberately scoped to /jobs only so the Hever pages
-# above stay public. If DASH_PASSWORD is unset every request is refused — a
-# missing secret must never mean "no password".
-DASH_USER = os.environ.get("DASH_USER", "shay")
-DASH_PASSWORD = os.environ.get("DASH_PASSWORD")
-
-
-def _authorized(auth):
-    if not auth or not DASH_PASSWORD:
-        return False
-    return (hmac.compare_digest(auth.username or "", DASH_USER)
-            and hmac.compare_digest(auth.password or "", DASH_PASSWORD))
-
-
 @app.route("/jobs")
 def jobs():
-    if not _authorized(request.authorization):
-        return Response("Authentication required.", 401,
-                        {"WWW-Authenticate": 'Basic realm="Job Dashboard"'})
     return send_from_directory(os.path.dirname(os.path.abspath(__file__)),
                                "job_dashboard.html")
 

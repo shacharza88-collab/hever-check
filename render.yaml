@@ -7,9 +7,3 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
-      # Guards /jobs only. sync: false keeps the value out of git —
-      # set it in the Render dashboard under Environment.
-      - key: DASH_USER
-        value: shay
-      - key: DASH_PASSWORD
-        sync: false
