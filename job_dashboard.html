@@ -407,7 +407,7 @@
         <header>
             <h1>🚀 Job Search Results</h1>
             <p style="color: #666; margin-top: 10px;">Your personalized job opportunities from top Israeli tech companies</p>
-            <p style="color: #999; font-size: 0.9em; margin-top: 5px;">Last updated: July 28, 2026 at 01:25 AM</p>
+            <p style="color: #999; font-size: 0.9em; margin-top: 5px;">Last updated: July 28, 2026 at 01:28 AM</p>
             <div class="keywords-section">
                 <div class="keywords-label">
                     Searching for:
@@ -579,6 +579,16 @@
                 const res = await fetch('/jobs/prefs', { cache: 'no-store' });
                 const d = await res.json();
                 if (!d.configured) return;  // not set up — keep localStorage
+                // First time this browser connects to the shared store, push its
+                // existing marks up so switching on sync never loses them. After
+                // that the server is the source of truth (so removals stick).
+                if (!localStorage.getItem('syncMigrated')) {
+                    highlightedJobs.forEach(k => syncPref('highlighted', 'add', k));
+                    dismissedJobs.forEach(k => syncPref('dismissed', 'add', k));
+                    localStorage.setItem('syncMigrated', '1');
+                    d.highlighted = [...new Set([...(d.highlighted || []), ...highlightedJobs])];
+                    d.dismissed = [...new Set([...(d.dismissed || []), ...dismissedJobs])];
+                }
                 dismissedJobs = new Set(d.dismissed || []);
                 highlightedJobs = new Set(d.highlighted || []);
                 localStorage.setItem('dismissedJobs', JSON.stringify([...dismissedJobs]));
