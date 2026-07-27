@@ -118,8 +118,14 @@ def index():
 # --- Job dashboard -----------------------------------------------------------
 @app.route("/jobs")
 def jobs():
-    return send_from_directory(os.path.dirname(os.path.abspath(__file__)),
+    resp = send_from_directory(os.path.dirname(os.path.abspath(__file__)),
                                "job_dashboard.html")
+    # Force the browser to revalidate every visit so a refresh always shows the
+    # latest scrape instead of a stale cached page.
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 
 @app.route("/debug")
