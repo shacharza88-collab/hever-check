@@ -7,3 +7,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      # Cross-device sync store (Upstash Redis). sync: false keeps the values
+      # out of git — set them in the Render dashboard under Environment.
+      # Until both are set, the dashboard falls back to per-browser storage.
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false

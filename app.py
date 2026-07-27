@@ -1,4 +1,4 @@
-import json, os, datetime
+import json, os, datetime, urllib.request, urllib.error
 from flask import Flask, request, jsonify, render_template_string, send_from_directory
 from hever_lite import search
 
@@ -126,6 +126,66 @@ def jobs():
     resp.headers["Pragma"] = "no-cache"
     resp.headers["Expires"] = "0"
     return resp
+
+
+# --- Cross-device sync for highlighted / dismissed jobs ----------------------
+# Stored in Upstash Redis (free) as two sets, so a star or hide on any device
+# shows on all of them. If the two env vars are unset the endpoints report
+# unconfigured and the page falls back to per-browser localStorage — nothing
+# breaks, it just doesn't sync. Redis SADD/SREM are used so two devices adding
+# different jobs never overwrite each other.
+UPSTASH_URL = os.environ.get("UPSTASH_REDIS_REST_URL", "").rstrip("/")
+UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
+_SETS = {"highlighted": "job_highlighted", "dismissed": "job_dismissed"}
+
+
+def _sync_configured():
+    return bool(UPSTASH_URL and UPSTASH_TOKEN)
+
+
+def _upstash(command):
+    """Run one Redis command via the Upstash REST API. command is a list."""
+    req = urllib.request.Request(
+        UPSTASH_URL,
+        data=json.dumps(command).encode("utf-8"),
+        headers={"Authorization": f"Bearer {UPSTASH_TOKEN}",
+                 "Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=10) as r:
+        return json.loads(r.read().decode("utf-8")).get("result")
+
+
+@app.route("/jobs/prefs", methods=["GET"])
+def jobs_prefs_get():
+    if not _sync_configured():
+        return jsonify({"configured": False, "highlighted": [], "dismissed": []})
+    try:
+        return jsonify({
+            "configured": True,
+            "highlighted": _upstash(["SMEMBERS", _SETS["highlighted"]]) or [],
+            "dismissed": _upstash(["SMEMBERS", _SETS["dismissed"]]) or [],
+        })
+    except Exception as e:
+        return jsonify({"configured": False, "error": str(e),
+                        "highlighted": [], "dismissed": []}), 200
+
+
+@app.route("/jobs/prefs", methods=["POST"])
+def jobs_prefs_post():
+    if not _sync_configured():
+        return jsonify({"configured": False}), 200
+    data = request.get_json(force=True, silent=True) or {}
+    set_key = _SETS.get(data.get("list"))
+    key = (data.get("key") or "").strip()
+    cmd = {"add": "SADD", "remove": "SREM"}.get(data.get("action"))
+    if not (set_key and key and cmd):
+        return jsonify({"ok": False, "error": "bad request"}), 400
+    try:
+        _upstash([cmd, set_key, key])
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 200
 
 
 @app.route("/debug")

@@ -407,7 +407,7 @@
         <header>
             <h1>🚀 Job Search Results</h1>
             <p style="color: #666; margin-top: 10px;">Your personalized job opportunities from top Israeli tech companies</p>
-            <p style="color: #999; font-size: 0.9em; margin-top: 5px;">Last updated: July 28, 2026 at 01:16 AM</p>
+            <p style="color: #999; font-size: 0.9em; margin-top: 5px;">Last updated: July 28, 2026 at 01:25 AM</p>
             <div class="keywords-section">
                 <div class="keywords-label">
                     Searching for:
@@ -527,14 +527,18 @@
         }
 
         function dismissJob(id) {
-            dismissedJobs.add(dismissKey(jobsData[id]));
+            const k = dismissKey(jobsData[id]);
+            dismissedJobs.add(k);
             saveDismissed();
+            syncPref('dismissed', 'add', k);
             refreshViews();
         }
 
         function restoreJob(id) {
-            dismissedJobs.delete(dismissKey(jobsData[id]));
+            const k = dismissKey(jobsData[id]);
+            dismissedJobs.delete(k);
             saveDismissed();
+            syncPref('dismissed', 'remove', k);
             refreshViews();
         }
 
@@ -549,10 +553,38 @@
 
         function toggleHighlight(id) {
             const k = dismissKey(jobsData[id]);
-            if (highlightedJobs.has(k)) highlightedJobs.delete(k);
-            else highlightedJobs.add(k);
+            const adding = !highlightedJobs.has(k);
+            if (adding) highlightedJobs.add(k);
+            else highlightedJobs.delete(k);
             localStorage.setItem('highlightedJobs', JSON.stringify([...highlightedJobs]));
+            syncPref('highlighted', adding ? 'add' : 'remove', k);
             refreshViews();
+        }
+
+        // --- Cross-device sync -------------------------------------------------
+        // localStorage stays the instant, offline cache; the server (Upstash via
+        // /jobs/prefs) is the shared source of truth across phone and computer.
+        // If the page is opened as a local file, or sync isn't configured, these
+        // calls fail quietly and the per-browser behaviour is unchanged.
+        function syncPref(list, action, key) {
+            fetch('/jobs/prefs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ list: list, action: action, key: key })
+            }).catch(function () {});
+        }
+
+        async function loadPrefs() {
+            try {
+                const res = await fetch('/jobs/prefs', { cache: 'no-store' });
+                const d = await res.json();
+                if (!d.configured) return;  // not set up — keep localStorage
+                dismissedJobs = new Set(d.dismissed || []);
+                highlightedJobs = new Set(d.highlighted || []);
+                localStorage.setItem('dismissedJobs', JSON.stringify([...dismissedJobs]));
+                localStorage.setItem('highlightedJobs', JSON.stringify([...highlightedJobs]));
+                refreshViews();
+            } catch (e) { /* offline / local file — keep localStorage */ }
         }
 
         function setViewMode(mode) {
@@ -733,6 +765,7 @@
         renderKeywords();
         populateFilters();
         refreshViews();
+        loadPrefs();  // pull shared highlighted/dismissed from the server, if configured
     </script>
 </body>
 </html>
